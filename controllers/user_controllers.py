@@ -26,3 +26,4 @@ def login():
         user = Newuser.get_user_by_email(email)
         if user and check_password_hash(user['password'], password):
             return redirect(url_for('services_bp.add_service'))
+        

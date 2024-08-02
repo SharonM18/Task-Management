@@ -14,4 +14,5 @@ class Newuser:
     
     def get_user_by_email(email):
         return mongo.db.user.find_one({"email": email})
+    
 
