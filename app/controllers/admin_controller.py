@@ -15,7 +15,7 @@ def signup_admin():
     hashed_password = generate_password_hash(password)
     user = {"name": name, "surname": surname, "email": email, "password": hashed_password}
     
-    if Admin.create_user(user):
+    if Admin.create_admin(user):
         return jsonify({"message": "User created successfully", "redirect": url_for('user.login')}), 201
     else:
         return jsonify({"error": "User creation failed"}), 500

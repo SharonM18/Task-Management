@@ -4,13 +4,13 @@ from .. import mongo
 class Admin:
     
    
-    def create_user(data):
+    def create_admin(data):
         # Check if the email already exists
         if mongo.db.user.find_one({"email": data["email"]}):
             return None
-        user_id = mongo.db.user.insert_one(data).inserted_id
-        return str(user_id)
+        admin_id = mongo.db.user.insert_one(data).inserted_id
+        return str(admin_id)
     
    
-    def get_user_by_email(email):
+    def get_admin_by_email(email):
         return mongo.db.user.find_one({"email": email})
