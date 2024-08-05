@@ -1,9 +1,9 @@
 from flask import Flask, request, url_for, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson.objectid import ObjectId
-from ..models.user import Newuser
+from ..models.user import User
 
-def signup():
+def signup_user():
     name = request.json.get('name')
     surname = request.json.get('surname')
     email = request.json.get('email')
@@ -15,7 +15,7 @@ def signup():
     hashed_password = generate_password_hash(password)
     user = {"name": name, "surname": surname, "email": email, "password": hashed_password}
     
-    if Newuser.create_user(user):
+    if User.create_user(user):
         return jsonify({"message": "User created successfully", "redirect": url_for('user.login')}), 201
     else:
         return jsonify({"error": "User creation failed"}), 500
@@ -27,7 +27,7 @@ def login():
     if not all([email, password]):
         return jsonify({"error": "Email and password are required"}), 400
 
-    user = Newuser.get_user_by_email(email)
+    user = User.get_user_by_email(email)
     
     if user and check_password_hash(user['password'], password):
         # Assuming session management is done here, and user_id is stored in the session
@@ -35,3 +35,6 @@ def login():
         return jsonify({"message": "Login successful"}), 200
     else:
         return jsonify({"error": "Invalid email or password"}), 401
+
+ 
+    

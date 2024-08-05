@@ -1,7 +1,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from .. import mongo
 
-class Newuser:
+class Admin:
     
    
     def create_user(data):
