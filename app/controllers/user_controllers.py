@@ -30,7 +30,6 @@ def login():
     user = User.get_user_by_email(email)
     
     if user and check_password_hash(user['password'], password):
-        # Assuming session management is done here, and user_id is stored in the session
         session['user_id'] = str(user['_id'])
         return jsonify({"message": "Login successful"}), 200
     else:
