@@ -1,2 +1,2 @@
 class Config:
-    MONGO_URI = "mongodb+srv://sharonmashimbye74:<password>@cluster0.ktsoknu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    MONGO_URI = "mongodb://localhost:27017/signup"
