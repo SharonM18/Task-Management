@@ -1,54 +1,53 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import JWTManager
-from ..models.admin import UserAdmin
 from datetime import datetime, timedelta
 import os
 import jwt
+from ..models.admin import Uadmin
 
+auth_bp = Blueprint('auth', __name__)
 
-def signup_admin(username, password, email):
-    
+def signup_admin(name, password, email):
     user_data = {
-        'name': username,
+        'name': name,
         'email': email,
         'password': password,
         'role': 'admin'
     }
-    result = UserAdmin.create_user(user_data)
-    return result
+    return Uadmin.create_user(user_data)
 
-def signup_user(username, password, email):
-    
+def signup_user(name, password, email):
     user_data = {
-        'name': username,
+        'name': name,
         'email': email,
         'password': password,
         'role': 'user'
     }
-    result = UserAdmin.create_user(user_data)
-    return result
+    return Uadmin.create_user(user_data)
 
+@auth_bp.route('/signup', methods=['POST'])
 def signup():
-    
-    username = request.json.get('username')
+    name = request.json.get('name')
     email = request.json.get('email')
     password = request.json.get('password')
     role = request.json.get('role')
 
-    if not username or not email or not password or not role:
+    if not name or not email or not password or not role:
         return jsonify({
-            'message': 'Username, email, password, and role are required',
-            'username': username,
+            'message': 'name, email, password, and role are required',
+            'name': name,
             'email': email
         }), 400
 
     hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
     if role == 'admin':
-        user_id = register_admin(username, hashed_password, email)
+        user_id = signup_admin(name, hashed_password, email)
     else:
-        user_id = register_user(username, hashed_password, email)
+        user_id = signup_user(name, hashed_password, email)
+
+    if not user_id:
+        return jsonify({'message': 'User creation failed. Email might already exist.'}), 400
 
     payload = {
         'user_id': user_id,
@@ -57,62 +56,24 @@ def signup():
     }
     token = jwt.encode(payload, os.environ.get('SECRET_KEY'), algorithm='HS256')
 
-    return jsonify({'token': token.decode('utf-8')}), 201
+    return jsonify({'token': token}), 201
 
+@auth_bp.route('/login', methods=['POST'])
 def login():
-    username = request.json.get('username')
+    email = request.json.get('email')
     password = request.json.get('password')
 
-    user = UserAdmin.query.filter_by(username=username).first()
+    user = Uadmin.get_user_by_email(email)
 
-    if user and check_password_hash(user.password, password):
-        
+    if user and check_password_hash(user['password'], password):
         payload = {
-            'user_id': user.id,
-            'role': user.role,
+            'user_id': str(user['_id']),
+            'role': user['role'],
             'exp': datetime.utcnow() + timedelta(hours=1)
         }
         token = jwt.encode(payload, os.environ.get('SECRET_KEY'), algorithm='HS256')
 
-        return jsonify({'token': token.decode('utf-8')}), 200
+        return jsonify({'token': token}), 200
     else:
-        return jsonify({'error': 'Invalid username or password'}), 401
+        return jsonify({'error': 'Invalid email or password'}), 401
 
-def register_admin(username, password, email):
-    return 1
-
-def register_user(username, password, email):
-    return 2
-
-# def signup_admin():
-#     name = request.json.get('name')
-#     surname = request.json.get('surname')
-#     email = request.json.get('email')
-#     password = request.json.get('password')
-
-#     if not all([name, surname, email, password]):
-#         return jsonify({"error": "All fields are required"}), 400
-
-#     hashed_password = generate_password_hash(password)
-#     user = {"name": name, "surname": surname, "email": email, "password": hashed_password}
-    
-#     if Admin.create_admin(user):
-#         return jsonify({"message": "User created successfully", "redirect": url_for('user.login')}), 201
-#     else:
-#         return jsonify({"error": "User creation failed"}), 500
-
-# def login_admin():
-#     email = request.json.get('email')
-#     password = request.json.get('password')
-
-#     if not all([email, password]):
-#         return jsonify({"error": "Email and password are required"}), 400
-
-#     user = Admin.get_user_by_email(email)
-    
-#     if user and check_password_hash(user['password'], password):
-#         # Assuming session management is done here, and user_id is stored in the session
-#         session['user_id'] = str(user['_id'])
-#         return jsonify({"message": "Login successful"}), 200
-#     else:
-#         return jsonify({"error": "Invalid email or password"}), 401
